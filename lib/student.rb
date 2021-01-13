@@ -37,9 +37,10 @@ class Student
       self.update
     else
       sql = <<-SQL
-        INSERT INTO songs (name, grade)
+        INSERT INTO students (name, grade)
         VALUES (?, ?)
       SQL
+      #binding.pry
       DB[:conn].execute(sql,self.name, self.grade)
       @id = DB[:conn].execute("SELECT last_insert_rowid()
       FROM students")[0][0]
@@ -63,10 +64,7 @@ class Student
 
   def self.new_from_db(row)
     # create a new Student object given a row from the 
-    new_student = self.new  # self.new is the same as running Song.new
-    new_student.id = row[0]
-    new_student.name =  row[1]
-    new_student.grade = row[2]
+    new_student = self.new(row[0], row[1],row[2])  # self.new is the same as running Song.new
     new_student
   end
 
@@ -83,10 +81,20 @@ class Student
  
     DB[:conn].execute(sql, name).map do |row|
       self.new_from_db(row)
+      #puts self
     end.first
     #binding.pry
   end
 
+  def update
+    sql = "UPDATE students SET name = ?, grade = ? WHERE id = ?"
+    DB[:conn].execute(sql, self.name, self.grade, self.id)
+  end
 
+  def self.create(name, grade)
+    student = Student.new(nil, name, grade)
+    student.save
+    student
+  end
 
 end
